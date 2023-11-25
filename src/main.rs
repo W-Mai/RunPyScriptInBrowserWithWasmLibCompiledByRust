@@ -1,9 +1,16 @@
 #![no_main]
 
+use std::mem::ManuallyDrop;
 use png::ColorType;
 
+#[allow(dead_code)]
+struct Buffer {
+    ptr: u32,
+    size: usize,
+}
+
 #[no_mangle]
-fn deal_image(data: *const u8, length: usize) -> usize {
+fn deal_image(data: *const u8, length: usize) -> u32 {
     let slice = unsafe { std::slice::from_raw_parts(data, length) };
     let mut image = png::Decoder::new(slice).read_info().unwrap();
     let buffer_size = image.output_buffer_size();
@@ -63,8 +70,32 @@ fn deal_image(data: *const u8, length: usize) -> usize {
     // You can reuse the result to generate several images with the same palette
     let (palette, pixels) = res.remapped(&mut img).unwrap();
 
-    println!("Done! Got palette {palette:?} and {} pixels with {}% quality", pixels.len(), res.quantization_quality().unwrap());
-    pixels.len()
+    // write to png file in memory
+    let mut png_data = Vec::new();
+    {
+        let mut encoder = png::Encoder::new(&mut png_data, width as u32, height as u32);
+        encoder.set_color(ColorType::Indexed);
+        encoder.set_depth(png::BitDepth::Eight);
+
+        // convert palette to u8
+        let palette = palette
+            .iter()
+            .map(|rgba| [rgba.r, rgba.g, rgba.b])
+            .flatten()
+            .collect::<Vec<_>>();
+
+        encoder.set_palette(palette.as_slice());
+        let mut writer = encoder.write_header().unwrap();
+        writer.write_image_data(&pixels).unwrap();
+    }
+
+    let buffer = png_data.leak();
+    let ptr = buffer.as_ptr();
+
+    Box::into_raw(Box::new(Buffer {
+        ptr: ptr as u32,
+        size: buffer.len(),
+    })) as u32
 }
 
 #[no_mangle]
