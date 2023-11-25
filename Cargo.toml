@@ -1,5 +1,5 @@
 [package]
-name = "RunPyScriptInBrowserWithWasmLib"
+name = "run_py_script_in_browser_with_wasm_lib"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 imagequant = { version = "4.0", default-features = false }
-wasm-bindgen = "0.2.87"
+png = "0.17.10"

@@ -19,7 +19,7 @@
     WebAssembly.instantiateStreaming(fetch('test.wasm'))
         .then(obj => {
                 wasm_exports = {
-                    fake_img: obj.instance.exports.fake_img,
+                    deal_image: obj.instance.exports.deal_image,
                     deal_array: obj.instance.exports.deal_array,
                     alloc_memory: obj.instance.exports.alloc_memory,
                     free_memory: obj.instance.exports.free_memory,
@@ -48,6 +48,8 @@
         array_view = Uint8Array.new(wasm_exports.memory.buffer, array_ptr)
         array_view.set(Uint8Array.new(buf))
         display(f"array_view: {array_view}")
+        deal = wasm_exports.deal_image(array_ptr, buf_len)
+        display(f"deal: {deal}")
 
     # https://developer.mozilla.org/en-US/docs/Web/API/File
     def file_change(event):
@@ -65,7 +67,6 @@
         promise.then(lambda buffer: deal_a_buffer(buffer))
 
     print("hello world")
-    display(f"len: {wasm_exports.fake_img()}")
 
     array = [1.0, 2.0, 3.0, 4.0, 5.0]
 
