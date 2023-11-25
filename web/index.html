@@ -19,25 +19,39 @@
                 wasm_exports = {
                     fab: obj.instance.exports.fab,
                     fake_img: obj.instance.exports.fake_img,
+                    deal_array: obj.instance.exports.deal_array,
+                    alloc_memory: obj.instance.exports.alloc_memory,
+                    free_memory: obj.instance.exports.free_memory,
+                    memory: obj.instance.exports.memory,
                 };
-
-                console.log(obj)
             }
         );
+
 </script>
 
 <py-script>
     import sys
-    from pyscript import display
-    from js import wasm_exports
+    import ctypes
+    from pyscript import display, window
+    import js
+    from js import wasm_exports, Array
 
     display(sys.version)
 
     display(f"len: {wasm_exports.fake_img()}")
 
     for i in range(1, 20):
-        display(f"fab {i} = {wasm_exports.fab(i)}")
+    display(f"fab {i} = {wasm_exports.fab(i)}")
 
+    array = [1.0, 2.0, 3.0, 4.0, 5.0]
+
+    array_ptr = wasm_exports.alloc_memory(len(array) * 8)
+    display(f"array_ptr: {array_ptr}")
+    array_view = js.Int32Array.new(wasm_exports.memory.buffer, array_ptr)
+    array_view.set(array)
+
+    deal = wasm_exports.deal_array(array_ptr, len(array))
+    display(f"deal: {deal}")
 </py-script>
 
 </body>

@@ -51,3 +51,28 @@ fn fake_img() -> usize {
     println!("Done! Got palette {palette:?} and {} pixels with {}% quality", pixels.len(), res.quantization_quality().unwrap());
     pixels.len()
 }
+
+#[no_mangle]
+fn deal_array(data: *const i32, length: usize) -> usize {
+    let slice = unsafe { std::slice::from_raw_parts(data, length) };
+    let mut sum = 0;
+    for i in slice {
+        sum += i;
+    }
+    return sum as usize;
+}
+
+#[no_mangle]
+fn alloc_memory(size: usize) -> u32 {
+    let mut v: Vec<u8> = Vec::with_capacity(size);
+    let ptr = v.as_mut_ptr();
+    std::mem::forget(v);
+    return ptr as u32;
+}
+
+#[no_mangle]
+fn free_memory(ptr: u32, size: usize) {
+    unsafe {
+        let _v = Vec::from_raw_parts(ptr as *mut u8, size, size);
+    }
+}
