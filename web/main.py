@@ -7,8 +7,8 @@ display(sys.version)
 
 global_config = {
     "option": "option1",
-    "array_ptr": 0,
-    "buf_len": 0,
+
+    "images": [],
 }
 
 
@@ -18,48 +18,50 @@ def get_buff(ptr):
 
 
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
-def deal_a_buffer(buf):
-    display(f"deal a buffer")
+def deal_a_buffer(buf, index):
     buf_len = buf.byteLength
     array_ptr = wasm_exports.alloc_memory(buf_len)
     array_view = Uint8Array.new(wasm_exports.memory.buffer, array_ptr)
     array_view.set(Uint8Array.new(buf))
-    global_config["array_ptr"] = array_ptr
-    global_config["buf_len"] = buf_len
+
+    global_config["images"][index] = {
+        "array_ptr": array_ptr,
+        "buf_len": buf_len
+    }
 
 
 # https://developer.mozilla.org/en-US/docs/Web/API/File
 def file_change(event):
-    print(event.target.files.item(0))
-    file = event.target.files.item(0)
-    if file is None:
+    files = event.target.files
+    print(files.item(0))
+    display(f"Uploaded {files.length} files")
+    if files.length == 0:
         return
 
-    display(f"name: {file.name}")
-    display(f"size: {file.size}")
-    display(f"type: {file.type}")
-    display(f"lastModified: {file.lastModified}")
+    global_config["images"] = [None] * files.length
 
-    promise = file.arrayBuffer()
-    promise.then(lambda buffer: deal_a_buffer(buffer))
+    for i in range(files.length):
+        file = files.item(i)
+        display(f"name: {file.name} size: {file.size} type: {file.type} lastModified: {file.lastModified}")
+
+        def tmp_deal_a_buffer(index):
+            promise = file.arrayBuffer()
+            promise.then(lambda buffer: deal_a_buffer(buffer, index))
+
+        tmp_deal_a_buffer(i)
 
 
-def button_click(event):
-    select = document.getElementById("my-select")
-    global_config["option"] = select.value
-    display(f"Deal image with option: {global_config['option']}")
-
-    array_ptr = global_config["array_ptr"]
-    buf_len = global_config["buf_len"]
+def deal_image(img):
+    array_ptr = img["array_ptr"]
+    buf_len = img["buf_len"]
 
     if array_ptr == 0 or buf_len == 0:
         display("no image")
         return
 
     res = wasm_exports.deal_image(array_ptr, buf_len)
-    display(f"array_ptr: {array_ptr} buf_len: {buf_len} deal: {res}")
     (img_buff, img_len) = get_buff(res)
-    display(f"img_buff: {img_buff} img_len: {img_len}")
+    display(f"array_ptr: {array_ptr} buf_len: {buf_len} deal: {res} img_buff: {img_buff} img_len: {img_len}")
     img_view = Uint8Array.new(wasm_exports.memory.buffer, img_buff, img_len)
 
     blob = Blob.new([img_view])
@@ -74,7 +76,7 @@ def button_click(event):
     wasm_exports.free_memory(array_ptr)
     wasm_exports.free_memory(res)
 
-    display("cleaned up")
+    print(f"cleaned up: array_ptr {array_ptr} buf_len: {buf_len}")
 
     # here to download the image
 
@@ -84,6 +86,15 @@ def button_click(event):
     # link.href = objectURL;
     # link.download = 'data.png';
     # link.click();
+
+
+def button_click(event):
+    select = document.getElementById("my-select")
+    global_config["option"] = select.value
+    display(f"Deal image with option: {global_config['option']}")
+
+    for img in global_config["images"]:
+        deal_image(img)
 
 
 def hello():
