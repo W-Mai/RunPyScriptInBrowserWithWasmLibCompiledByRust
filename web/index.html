@@ -15,6 +15,15 @@
 <!--uploaded an image file to process-->
 <input type="file" id="file" name="file" accept="image/*" py-change="file_change"/>
 
+<button py-click="button_click">Deal Image</button>
+
+<select id="my-select">
+    <option>option 1</option>
+    <option>option 2</option>
+    <option>option 3</option>
+    <option>option 4</option>
+</select>
+
 <script>
     WebAssembly.instantiateStreaming(fetch('test.wasm'))
         .then(obj => {
