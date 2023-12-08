@@ -71,6 +71,7 @@ def deal_image(img):
 
     img = window.Image.new()
     img.src = object_url
+    img.style.width = "200px"
     document.body.appendChild(img)
 
     wasm_exports.free_memory(array_ptr)
