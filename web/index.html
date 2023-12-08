@@ -25,18 +25,23 @@
 </select>
 
 <script>
-    WebAssembly.instantiateStreaming(fetch('test.wasm'))
-        .then(obj => {
-                wasm_exports = {
-                    deal_image: obj.instance.exports.deal_image,
-                    deal_array: obj.instance.exports.deal_array,
-                    alloc_memory: obj.instance.exports.alloc_memory,
-                    free_memory: obj.instance.exports.free_memory,
-                    memory: obj.instance.exports.memory,
-                };
-            }
-        );
+    async function fetchAndInstantiate() {
+        const response = await fetch("test.wasm");
+        const buffer = await response.arrayBuffer();
+        WebAssembly.instantiate(buffer)
+            .then(obj => {
+                    wasm_exports = {
+                        deal_image: obj.instance.exports.deal_image,
+                        deal_array: obj.instance.exports.deal_array,
+                        alloc_memory: obj.instance.exports.alloc_memory,
+                        free_memory: obj.instance.exports.free_memory,
+                        memory: obj.instance.exports.memory,
+                    };
+                }
+            );
+    }
 
+    fetchAndInstantiate()
 </script>
 
 <script type="py" src="main.py"></script>

@@ -1,6 +1,5 @@
 #![no_main]
 
-use std::mem::ManuallyDrop;
 use png::ColorType;
 
 #[allow(dead_code)]
