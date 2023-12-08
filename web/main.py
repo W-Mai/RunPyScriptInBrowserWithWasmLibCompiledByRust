@@ -115,6 +115,9 @@ def deal_image(img: WasmImage):
     small_group.style.flexDirection = "column"
     small_group.style.alignItems = "center"
     small_group.style.margin = "10px"
+    small_group.style.padding = "10px"
+    small_group.style.boxShadow = "15px 15px 15px #6666"
+    small_group.style.borderRadius = "10px"
     small_group.appendChild(img_comp)
     small_group.appendChild(link)
     small_group.appendChild(info)
